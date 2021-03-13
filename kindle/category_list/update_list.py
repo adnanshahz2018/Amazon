@@ -52,6 +52,10 @@ class kindle:
             print(self.count, '- "' + cat + '"', ' : ', kindle_categories_us[cat], '\n')
             with open(country + '.json', 'w+') as jasonfile:
                 json.dump(kindle_categories_us, jasonfile, indent=4)
+
+            break
+
+
         self.browser.close()
         
     def check_subcategory(self, cat, link):
@@ -86,8 +90,8 @@ if __name__ == '__main__':
     selectedcountries = selected_countries()
     for country in kindle_best_sellers:
         if country in selectedcountries:
-            # kind.category(country)
             print(country)
+            kind.category(country)
 
 
     

@@ -7,9 +7,9 @@ from selenium import webdriver
 
 audible_best_sellers    = {
     'Australia': 'https://www.amazon.com.au/gp/bestsellers/audible/ref=zg_bs_nav_0',
-    'Brazil': '',
+    # 'Brazil': '',
     'Canada': 'https://www.amazon.ca/Best-Sellers-Audible-Audiobooks/zgbs/audible/ref=zg_bs_nav_0',
-    'China': '',
+    # 'China': '',
     'France': 'https://www.amazon.fr/gp/bestsellers/audible/ref=zg_bs_nav_0',
     'Germany': 'https://www.amazon.de/gp/bestsellers/audible/ref=zg_bs_nav_0',
     'India': 'https://www.amazon.in/gp/bestsellers/audible/ref=zg_bs_nav_0',
@@ -37,7 +37,7 @@ class audible:
 
     def category(self, country='United States'):
         self.browser = webdriver.Chrome('../../chromedriver.exe') 
-        self.browser.get(audible_best_sellers['United States'])
+        self.browser.get(audible_best_sellers[country])
         soup = BeautifulSoup(self.browser.page_source, features='lxml')
         ul = soup.find('ul', attrs={'id':'zg_browseRoot'})
         ul = ul.find('ul')
@@ -51,6 +51,9 @@ class audible:
             print(self.count, '- "' + cat + '"', ' : ', audible_categories_us[cat], '\n')
             with open(country + '.json', 'w+') as jasonfile:
                 json.dump(audible_categories_us, jasonfile, indent=4)
+            
+            break
+
         self.browser.close()
         
     def check_subcategory(self, cat, link):
@@ -86,5 +89,5 @@ if __name__ == '__main__':
     selectedcountries = selected_countries()
     for country in audible_best_sellers:
         if country in selectedcountries:
-            # audi.category(country)
             print(country)
+            audi.category(country)

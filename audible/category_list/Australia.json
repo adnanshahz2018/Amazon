@@ -1,0 +1,30 @@
+{
+    "Arts & Entertainment": {
+        "null": "https://www.amazon.com.au/gp/bestsellers/audible/8169304051/ref=zg_bs_nav_1_audible/357-1068337-6500668",
+        "Art": "https://www.amazon.com.au/gp/bestsellers/audible/8169307051/ref=zg_bs_nav_2_8169304051",
+        "Audio Performances & Dramatisations": {
+            "null": "https://www.amazon.com.au/gp/bestsellers/audible/8169313051/ref=zg_bs_nav_2_8169304051",
+            "Dramatisations": "https://www.amazon.com.au/gp/bestsellers/audible/8169314051/ref=zg_bs_nav_3_8169313051",
+            "Stand-up & Live Comedy": "https://www.amazon.com.au/gp/bestsellers/audible/8169315051/ref=zg_bs_nav_3_8169313051"
+        },
+        "Entertainment & Performing Arts": {
+            "null": "https://www.amazon.com.au/gp/bestsellers/audible/8169317051/ref=zg_bs_nav_2_8169304051",
+            "Acting & Auditioning": "https://www.amazon.com.au/gp/bestsellers/audible/8169318051/ref=zg_bs_nav_3_8169317051",
+            "Art of Storytelling": "https://www.amazon.com.au/gp/bestsellers/audible/8169319051/ref=zg_bs_nav_3_8169317051",
+            "Business Aspects": "https://www.amazon.com.au/gp/bestsellers/audible/8169320051/ref=zg_bs_nav_3_8169317051",
+            "Comedy": "https://www.amazon.com.au/gp/bestsellers/audible/8169321051/ref=zg_bs_nav_3_8169317051",
+            "Film & TV": {
+                "null": "https://www.amazon.com.au/gp/bestsellers/audible/8169327051/ref=zg_bs_nav_3_8169317051",
+                "Direction & Production": "https://www.amazon.com.au/gp/bestsellers/audible/8169328051/ref=zg_bs_nav_4_8169327051",
+                "History & Criticism": "https://www.amazon.com.au/gp/bestsellers/audible/8169329051/ref=zg_bs_nav_4_8169327051",
+                "Screenwriting": "https://www.amazon.com.au/gp/bestsellers/audible/8169330051/ref=zg_bs_nav_4_8169327051"
+            }
+        },
+        "Music": {
+            "null": "https://www.amazon.com.au/gp/bestsellers/audible/8169336051/ref=zg_bs_nav_2_8169304051",
+            "Business Aspects": "https://www.amazon.com.au/gp/bestsellers/audible/8169337051/ref=zg_bs_nav_3_8169336051",
+            "History & Criticism": "https://www.amazon.com.au/gp/bestsellers/audible/8169338051/ref=zg_bs_nav_3_8169336051",
+            "Instruction & Technique": "https://www.amazon.com.au/gp/bestsellers/audible/8169339051/ref=zg_bs_nav_3_8169336051"
+        }
+    }
+}
