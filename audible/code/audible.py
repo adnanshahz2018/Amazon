@@ -11,9 +11,26 @@ from selenium import webdriver
 
 
 book_prefix = {
-    'India': 'https://www.amazon.in',
+    'Autralia':'https://www.amazon.com.au',
+    'Brazil':'https://www.amazon.com.br',
+    'Canada':'https://www.amazon.ca',
+    'China':'https://www.amazon.cn',
+    'France':'https://www.amazon.fr',
+    'Germany':'https://www.amazon.de',
+    'India':'https://www.amazon.in',
+    'Italy':'https://www.amazon.it',
+    'Japan':'https://www.amazon.co.jp',
+    'Mexico':'https://www.amazon.com.mx',
+    'Netherlands':'https://www.amazon.nl',
+    'Ploand':'https://www.amazon.pl',
+    # 'Saudi Arabia':'https://www.amazon.',
+    'Singapore':'https://www.amazon.sg',
+    'Spain':'https://www.amazon.es',
+    'Sweden':'https://www.amazon.se',
+    'Turkey':'https://www.amazon.tr',
+    'United Arab Emirates':'https://www.amazon.ae',
     'United States' : 'https://www.amazon.com',
-    'United Kingdom': 'https://www.amazon.co'
+    'United Kingdom': 'https://www.amazon.co.uk'
 }
 
 
@@ -43,7 +60,6 @@ class audible:
             return json.load(read_file)
     
     def scrape_category(self):
-        # kind = kindle('audible_settings.xlsx')
         count = 1
         for cat in self.categories:
             self.create_excel_file(cat, self.audible_filename)
