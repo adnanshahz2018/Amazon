@@ -47,7 +47,7 @@ class audible:
 
     def __init__(self, country):
         self.country = country
-        self.audible_filename = f'audible_{country}.xlsx'
+        self.audible_filename = f'../data/audible_{country}.xlsx'
         setting =  pd.read_excel('settings.xlsx', 'settings')
         datas = setting['audible-data-fields']
         cats  = setting['audible-categories']
@@ -196,7 +196,7 @@ class audible:
 
     def create_excel_file(self, category_name, filename):
         # creating new excle file
-        workbook = xlsxwriter.Workbook('../data/' + filename)
+        workbook = xlsxwriter.Workbook(filename)
         workbook.add_worksheet(category_name)
         workbook.close()
         workbook = op.load_workbook(filename, False)
@@ -206,7 +206,7 @@ class audible:
         workbook.close()
 
     def write_to_excel(self, filename, books=[]):
-        workbook = op.load_workbook('../data/' + filename, False)
+        workbook = op.load_workbook(filename, False)
         worksheet = workbook[self.sub_names['category']]
         for book in books:
             data = []
@@ -217,7 +217,7 @@ class audible:
                     else:   data.append(book[data_field])
                 except: data.append('N/A')
             worksheet.append(data)
-        workbook.save('../data/' + filename)
+        workbook.save(filename)
         workbook.close()
 
     def headers(self):
@@ -238,10 +238,11 @@ def selected_countries():
 
 if __name__ == '__main__':
     countries = selected_countries()
+    print(countries)
     for country in countries:
         try:
             audi = audible(country)
             audi.scrape_category()
             time.sleep(5)
         except:
-            print(country, ' List Not Found')
+            print(country, '-List Not Found')
