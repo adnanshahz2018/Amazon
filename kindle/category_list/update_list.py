@@ -39,6 +39,7 @@ class kindle:
     def category(self, country='United States'):
         self.browser = webdriver.Chrome('../../chromedriver.exe') 
         self.browser.get(kindle_best_sellers[country])
+        self.browser.set_window_position(500,0)
         soup = BeautifulSoup(self.browser.page_source, features='lxml')
         ul = soup.find('ul', attrs={'id':'zg_browseRoot'})
         ul = ul.find('ul')

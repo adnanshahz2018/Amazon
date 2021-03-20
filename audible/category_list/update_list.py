@@ -28,7 +28,6 @@ audible_best_sellers    = {
     'United States' : 'https://www.amazon.com/Best-Sellers-Audible-Audiobooks/zgbs/audible/?_encoding=UTF8&ref_=sv_adbl_subnav_ref1_2'
 }
 
-audible_categories_us   = {}
 
 
 class audible:
@@ -36,7 +35,9 @@ class audible:
     browser = None
 
     def category(self, country='United States'):
-        self.browser = webdriver.Chrome('../../chromedriver.exe') 
+        audible_categories_us   = {}
+        self.browser = webdriver.Chrome('../../chromedriver.exe')
+        self.browser.set_window_position(500,0)
         self.browser.get(audible_best_sellers[country])
         soup = BeautifulSoup(self.browser.page_source, features='lxml')
         ul = soup.find('ul', attrs={'id':'zg_browseRoot'})

@@ -11,7 +11,7 @@ from selenium import webdriver
 
 
 book_prefix = {
-    'Autralia':'https://www.amazon.com.au',
+    'Australia':'https://www.amazon.com.au',
     'Brazil':'https://www.amazon.com.br',
     'Canada':'https://www.amazon.ca',
     'China':'https://www.amazon.cn',
@@ -36,24 +36,31 @@ book_prefix = {
 
 class audible:
     count = 1
+    country = ''
     sub_level = 0
     sub_names = {}
     categories = []
     book_number = 50
     audible_categories = {}
-    audible_filename = 'audible_data.xlsx'
+    audible_filename = ''
     data_fields =  ['category', 'subcat-1', 'subcat-2', 'subcat-3', 'subcat-4']
 
-    def __init__(self):
+    def __init__(self, country):
+        self.country = country
+        self.audible_filename = f'audible_{country}.xlsx'
         setting =  pd.read_excel('settings.xlsx', 'settings')
         datas = setting['audible-data-fields']
         cats  = setting['audible-categories']
         self.book_number = int(setting['book-number'][0])
         for i in datas.index:
             if datas[i] is not nan:    self.data_fields.append(datas[i])
+        # print('Data fields = ', self.data_fields)
         for i in cats.index:
             if cats[i] is not nan:     self.categories.append(cats[i])
-        self.audible_categories = self.update_category_list('audible_list.json')
+        # print('Categories = ', self.categories)
+        self.audible_categories = self.update_category_list(f'../category_list/{country}.json')
+        print(country)
+        print(self.audible_categories)
 
     def update_category_list(self, filename):
         with open(filename, 'r+') as read_file:
@@ -76,7 +83,7 @@ class audible:
                 worksheet.append(self.headers())
                 workbook.save(self.audible_filename)
                 workbook.close()
-            print(category)
+            # print(category)
             try:
                 subcategories = self.audible_categories[ category ]
                 t = threading.Thread(target=self.helper_category_books, args=(subcategories, self.audible_filename, ))
@@ -85,14 +92,6 @@ class audible:
             except:
                 print ("Error: unable to start new thread")
             count += 1
-            if count == 2: break
-
-    def update_subnames(self, subcat):
-        print('\n' ,self.sub_level, ' - ', self.sub_names)
-        if self.sub_level == 1: self.sub_names['subcat-1'] = subcat
-        if self.sub_level == 2: self.sub_names['subcat-2'] = subcat
-        if self.sub_level == 3: self.sub_names['subcat-3'] = subcat
-        if self.sub_level == 4: self.sub_names['subcat-4'] = subcat   
 
     def helper_category_books(self, subcategories, filename):
         for subcat in subcategories:
@@ -110,10 +109,18 @@ class audible:
                 self.helper_category_books(subcategories[subcat], filename)
         self.update_subnames('null')
         self.sub_level -= 1
-            
+
+    def update_subnames(self, subcat):
+        print('\n' ,self.sub_level, ' - ', self.sub_names)
+        if self.sub_level == 1: self.sub_names['subcat-1'] = subcat
+        if self.sub_level == 2: self.sub_names['subcat-2'] = subcat
+        if self.sub_level == 3: self.sub_names['subcat-3'] = subcat
+        if self.sub_level == 4: self.sub_names['subcat-4'] = subcat   
+        
     def category_books(self, filename, link):
         books = []  # for book-data
         browser = webdriver.Chrome('../../chromedriver.exe') 
+        browser.set_window_position(500,0)
         try:
             browser.get(link)
         except:
@@ -126,7 +133,7 @@ class audible:
         for book in book_sections:
             book_count += 1
             a_tags = book.find_all('a', attrs={'class':'a-link-normal'})
-            book_details_link = book_prefix['United States'] + a_tags[0]['href']
+            book_details_link = book_prefix[self.country] + a_tags[0]['href']
             try:
                 browser.get(book_details_link)
                 source = browser.page_source
@@ -183,23 +190,23 @@ class audible:
             if book_count > self.book_number:   break
 
         # Saving in Excel File  
-        self.write_to_excel(filename, books)
+        self.write_to_excel(self.audible_filename, books)
         browser.close()
         return True
 
     def create_excel_file(self, category_name, filename):
         # creating new excle file
-        workbook = xlsxwriter.Workbook(filename)
+        workbook = xlsxwriter.Workbook('../data/' + filename)
         workbook.add_worksheet(category_name)
         workbook.close()
         workbook = op.load_workbook(filename, False)
         worksheet = workbook[category_name]
         worksheet.append(self.headers())
-        workbook.save(filename)
+        workbook.save('../data/' + filename)
         workbook.close()
 
     def write_to_excel(self, filename, books=[]):
-        workbook = op.load_workbook(filename, False)
+        workbook = op.load_workbook('../data/' + filename, False)
         worksheet = workbook[self.sub_names['category']]
         for book in books:
             data = []
@@ -210,7 +217,7 @@ class audible:
                     else:   data.append(book[data_field])
                 except: data.append('N/A')
             worksheet.append(data)
-        workbook.save(filename)
+        workbook.save('../data/' + filename)
         workbook.close()
 
     def headers(self):
@@ -220,7 +227,21 @@ class audible:
         return header
 
 
+def selected_countries():
+    countries =  pd.read_excel('../category_list/countries.xlsx', 'countries')
+    datas = countries['countries']
+    country_list = []
+    for i in datas.index:
+            if datas[i] is not nan:    
+                country_list.append(datas[i])
+    return country_list
 
 if __name__ == '__main__':
-    audi = audible()
-    audi.scrape_category()
+    countries = selected_countries()
+    for country in countries:
+        try:
+            audi = audible(country)
+            audi.scrape_category()
+            time.sleep(5)
+        except:
+            print(country, ' List Not Found')

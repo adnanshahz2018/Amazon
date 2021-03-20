@@ -114,6 +114,7 @@ class kindle:
     def category_books(self, filename, link):
         books = []  # for book-data
         browser = webdriver.Chrome('../../chromedriver.exe') 
+        browser.set_window_position(500,0)
         try:
             browser.get(link)
         except:
