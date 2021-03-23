@@ -29,7 +29,6 @@ kindle_best_sellers = {
     'United Kingdom': 'https://www.amazon.co.uk/Best-Sellers-Kindle-Store-eBooks/zgbs/digital-text/341689031/ref=zg_bs_nav_kinc_1_kinc'
 }
 
-kindle_categories_us    = {}
 
 
 class kindle:
@@ -37,6 +36,7 @@ class kindle:
     browser = None
 
     def category(self, country='United States'):
+        kindle_categories_us    = {}
         self.browser = webdriver.Chrome('../../chromedriver.exe') 
         self.browser.get(kindle_best_sellers[country])
         self.browser.set_window_position(500,0)
@@ -57,8 +57,7 @@ class kindle:
 
             break
 
-
-        self.browser.close()
+        self.browser.quit()
         
     def check_subcategory(self, cat, link):
         cat_dict = {}
