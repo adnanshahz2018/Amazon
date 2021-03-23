@@ -55,7 +55,7 @@ class audible:
             
             break
 
-        self.browser.close()
+        self.browser.quit()
         
     def check_subcategory(self, cat, link):
         cat_dict = {}
