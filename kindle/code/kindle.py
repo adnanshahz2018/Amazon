@@ -11,7 +11,7 @@ from selenium import webdriver
 
 
 book_prefix = {
-    'Autralia':'https://www.amazon.com.au',
+    'Australia':'https://www.amazon.com.au',
     'Brazil':'https://www.amazon.com.br',
     'Canada':'https://www.amazon.ca',
     'China':'https://www.amazon.cn',
@@ -36,15 +36,18 @@ book_prefix = {
 
 class kindle:
     count = 1
+    country = ''
     sub_level = 0
     sub_names = {}
     categories = []
     book_number = 50
     kindle_categories = {}
-    kindle_filename = 'kindle_data.xlsx'
+    kindle_filename = ''
     data_fields =  ['category', 'subcat-1', 'subcat-2', 'subcat-3', 'subcat-4']
     
-    def __init__(self):
+    def __init__(self, country='United States'):
+        self.country = country
+        self.kindle_filename = f'../data/kindle_{country}.xlsx'
         setting =  pd.read_excel('settings.xlsx', 'settings')
         datas = setting['kindle-data-fields']
         cats  = setting['kindle-categories']
@@ -53,7 +56,9 @@ class kindle:
             if datas[i] is not nan:    self.data_fields.append(datas[i])
         for i in cats.index:
             if cats[i] is not nan:     self.categories.append(cats[i])
-        self.kindle_categories = self.update_category_list('kindle_list.json')
+        self.kindle_categories = self.update_category_list(f'../category_list/{country}.json')
+        print(country)
+        print(self.kindle_categories)
 
     def update_category_list(self, filename):
         with open(filename, 'r+') as read_file:
@@ -65,6 +70,7 @@ class kindle:
             self.create_excel_file(cat, self.kindle_filename)
             break
         for category in self.categories:   # Create new thread for category
+            self.browser = webdriver.Chrome('../../chromedriver.exe') 
             self.sub_level = 1
             self.sub_names = {'category': category, 'subcat-1' : 'null', 'subcat-2' : 'null', 'subcat-3' : 'null', 'subcat-4' : 'null'}
             workbook = op.load_workbook(self.kindle_filename, False)
@@ -76,7 +82,6 @@ class kindle:
                 worksheet.append(self.headers())
                 workbook.save(self.kindle_filename)
                 workbook.close()
-            print(category)
             try:
                 subcategories = self.kindle_categories[ category ]
                 t = threading.Thread(target=self.helper_category_books, args=(subcategories, self.kindle_filename, ))
@@ -85,7 +90,7 @@ class kindle:
             except:
                 print ("Error: unable to start new thread")
             count += 1
-            break
+            self.browser.quit()
     
     def update_subnames(self, subcat):
         print('\n' ,self.sub_level, ' - ', self.sub_names)
@@ -113,24 +118,24 @@ class kindle:
     
     def category_books(self, filename, link):
         books = []  # for book-data
-        browser = webdriver.Chrome('../../chromedriver.exe') 
-        browser.set_window_position(500,0)
+        self.browser.set_window_position(500,0)
         try:
-            browser.get(link)
+            self.browser.get(link)
         except:
             print('Failed to Load')
             return False
-        source = browser.page_source
+        source = self.browser.page_source
         soup = BeautifulSoup(source, features='lxml')
         book_sections = soup.find_all('div', attrs={'class':'a-section a-spacing-none aok-relative'})
         book_count = 1
         for book in book_sections:
+            if book_count > self.book_number:   break
             book_count += 1
             a_tags = book.find_all('a', attrs={'class':'a-link-normal'})
-            book_details_link = book_prefix['United States'] + a_tags[0]['href']
+            book_details_link = book_prefix[self.country] + a_tags[0]['href']
             try:
-                browser.get(book_details_link)
-                source = browser.page_source
+                self.browser.get(book_details_link)
+                source = self.browser.page_source
                 soup = BeautifulSoup(source, features='lxml')
                 
                 title = soup.find('span', attrs={'id':'productTitle'}).get_text().strip('\n')
@@ -175,12 +180,8 @@ class kindle:
                 books.append(details)
             except:
                 continue
-            if book_count > self.book_number:   break
-        
         # Saving in Excel File  
         self.write_to_excel(filename, books)
-        browser.close()
-        return True
 
     def create_excel_file(self, category_name, filename):
         # creating new excel file
@@ -216,9 +217,22 @@ class kindle:
         return header
 
 
-if __name__ == '__main__':
-    kind = kindle()
-    kind.scrape_category()
+def selected_countries():
+    countries =  pd.read_excel('../category_list/countries.xlsx', 'countries')
+    datas = countries['countries']
+    country_list = []
+    for i in datas.index:
+            if datas[i] is not nan:    
+                country_list.append(datas[i])
+    return country_list
 
-    audi = audible()
-    audi.scrape_category()
+if __name__ == '__main__':
+    countries = selected_countries()
+    print(countries)
+    for country in countries:
+        try:
+            kind = kindle(country)
+            kind.scrape_category()
+            time.sleep(5)
+        except:
+            print(country, '-List Not Found')

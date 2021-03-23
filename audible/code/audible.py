@@ -41,8 +41,8 @@ class audible:
     sub_names = {}
     categories = []
     book_number = 50
-    audible_categories = {}
     audible_filename = ''
+    audible_categories = {}
     data_fields =  ['category', 'subcat-1', 'subcat-2', 'subcat-3', 'subcat-4']
 
     def __init__(self, country):
@@ -54,10 +54,8 @@ class audible:
         self.book_number = int(setting['book-number'][0])
         for i in datas.index:
             if datas[i] is not nan:    self.data_fields.append(datas[i])
-        # print('Data fields = ', self.data_fields)
         for i in cats.index:
             if cats[i] is not nan:     self.categories.append(cats[i])
-        # print('Categories = ', self.categories)
         self.audible_categories = self.update_category_list(f'../category_list/{country}.json')
         print(country)
         print(self.audible_categories)
@@ -72,6 +70,7 @@ class audible:
             self.create_excel_file(cat, self.audible_filename)
             break
         for category in self.categories:   # Create new thread for category
+            self.browser = webdriver.Chrome('../../chromedriver.exe') 
             self.sub_level = 1
             self.sub_names = {'category': category, 'subcat-1' : 'null', 'subcat-2' : 'null', 'subcat-3' : 'null', 'subcat-4' : 'null'}
             workbook = op.load_workbook(self.audible_filename, False)
@@ -83,7 +82,6 @@ class audible:
                 worksheet.append(self.headers())
                 workbook.save(self.audible_filename)
                 workbook.close()
-            # print(category)
             try:
                 subcategories = self.audible_categories[ category ]
                 t = threading.Thread(target=self.helper_category_books, args=(subcategories, self.audible_filename, ))
@@ -92,6 +90,8 @@ class audible:
             except:
                 print ("Error: unable to start new thread")
             count += 1
+            self.browser.quit()
+
 
     def helper_category_books(self, subcategories, filename):
         for subcat in subcategories:
@@ -119,14 +119,13 @@ class audible:
         
     def category_books(self, filename, link):
         books = []  # for book-data
-        browser = webdriver.Chrome('../../chromedriver.exe') 
-        browser.set_window_position(500,0)
+        self.browser.set_window_position(500,0)
         try:
-            browser.get(link)
+            self.browser.get(link)
         except:
             print('Failed to Load')
             return False
-        source = browser.page_source
+        source = self.browser.page_source
         soup = BeautifulSoup(source, features='lxml')
         book_sections = soup.find_all('div', attrs={'class':'a-section a-spacing-none aok-relative'})
         book_count = 1
@@ -135,8 +134,8 @@ class audible:
             a_tags = book.find_all('a', attrs={'class':'a-link-normal'})
             book_details_link = book_prefix[self.country] + a_tags[0]['href']
             try:
-                browser.get(book_details_link)
-                source = browser.page_source
+                self.browser.get(book_details_link)
+                source = self.browser.page_source
                 soup = BeautifulSoup(source, features='lxml')
                 
                 title = soup.find('span', attrs={'id':'productTitle'}).get_text().strip('\n')
@@ -159,7 +158,6 @@ class audible:
                 if 'Ratings'        in self.data_fields:    details['Ratings']      = rating
                 if 'Stars'          in self.data_fields:    details['Stars']        = stars
 
-                # print('tr list = ', tr_list)
                 for tr in tr_list:
                     span = tr.find('th')
                     span = span.find('span')
@@ -184,15 +182,11 @@ class audible:
                 print(self.count, end=" ")
                 self.count += 1
                 books.append(details)
-            except:
-                print('Cant get book link \n')
+            except: 
                 continue
             if book_count > self.book_number:   break
-
         # Saving in Excel File  
         self.write_to_excel(self.audible_filename, books)
-        browser.close()
-        return True
 
     def create_excel_file(self, category_name, filename):
         # creating new excle file
