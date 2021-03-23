@@ -92,7 +92,6 @@ class audible:
             count += 1
             self.browser.quit()
 
-
     def helper_category_books(self, subcategories, filename):
         for subcat in subcategories:
             if not type(subcategories[subcat]) is dict:
