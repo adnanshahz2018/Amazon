@@ -41,6 +41,7 @@ class audible:
     sub_names = {}
     categories = []
     book_number = 50
+    work_done = list()
     audible_filename = ''
     audible_categories = {}
     data_fields =  ['category', 'subcat-1', 'subcat-2', 'subcat-3', 'subcat-4']
@@ -65,12 +66,12 @@ class audible:
             return json.load(read_file)
     
     def scrape_category(self):
-        count = 1
         for cat in self.categories:
             self.create_excel_file(cat, self.audible_filename)
             break
         for category in self.categories:   # Create new thread for category
             browser = webdriver.Chrome('../../chromedriver.exe') 
+            self.work_done.append(False)
             self.sub_level = 1
             self.sub_names = {'category': category, 'subcat-1' : 'null', 'subcat-2' : 'null', 'subcat-3' : 'null', 'subcat-4' : 'null'}
             workbook = op.load_workbook(self.audible_filename, False)
@@ -84,12 +85,18 @@ class audible:
                 workbook.close()
             try:
                 subcategories = self.audible_categories[ category ]
-                t = threading.Thread(target=self.helper_category_books, args=(browser, subcategories, ))
+                t = threading.Thread(target=self.intermediate, args=(self.count, browser, subcategories, ))
                 t.start()
                 # t.join()
             except:
                 print ("Error: unable to start new thread")
-            count += 1
+            self.count += 1
+    
+    def intermediate(self, count, browser, subcategories):
+        self.helper_category_books(browser, subcategories)
+        # print('\n\n Category Finished -------\n\n')
+        self.work_done[count] = True
+        browser.quit()
 
     def helper_category_books(self, browser, subcategories):
         for subcat in subcategories:
@@ -178,7 +185,6 @@ class audible:
                 details[bst_heading] = bst_data
                 # print( 'A-', self.count, '. ', details, '\n')
                 print(self.count, end=" ")
-                self.count += 1
                 books.append(details)
             except: 
                 continue
@@ -235,6 +241,15 @@ if __name__ == '__main__':
         try:
             audi = audible(country)
             audi.scrape_category()
-            time.sleep(5)
+            done = False
+            while not done:
+                time.sleep(5)
+                # print('Work Done - ', kind.work_done)
+                for val in audi.work_done:
+                    if not val:
+                        done = False
+                        break
+                    else: 
+                        done = True
         except:
             print(country, '-List Not Found')

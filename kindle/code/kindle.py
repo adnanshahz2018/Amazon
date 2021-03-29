@@ -3,6 +3,7 @@
 import threading
 import xlsxwriter 
 import json, time
+import os, random
 import pandas as pd
 from numpy import nan
 import openpyxl as op
@@ -33,14 +34,14 @@ book_prefix = {
     'United Kingdom': 'https://www.amazon.co.uk'
 }
 
-
 class kindle:
-    count = 1
+    count = 0
     country = ''
     sub_level = 0
     sub_names = {}
     categories = []
     book_number = 50
+    work_done = list()
     kindle_categories = {}
     kindle_filename = ''
     data_fields =  ['category', 'subcat-1', 'subcat-2', 'subcat-3', 'subcat-4']
@@ -56,24 +57,29 @@ class kindle:
             if datas[i] is not nan:    self.data_fields.append(datas[i])
         for i in cats.index:
             if cats[i] is not nan:     self.categories.append(cats[i])
-        self.kindle_categories = self.update_category_list(f'../category_list/{country}.json')
-        print(country)
-        print(self.kindle_categories)
+        self.kindle_categories = self.update_category_list(f'../category_list/{country}.json', country)
+        if self.kindle_categories:
+            print(country)
+            print(self.kindle_categories)
 
-    def update_category_list(self, filename):
-        with open(filename, 'r+') as read_file:
-            return json.load(read_file)
+    def update_category_list(self, filename, country):
+        if not os.path.exists(filename):
+            print(f'{country}.json File NOT Foundt')
+            return False
+        else:
+            with open(filename, 'r+') as read_file:
+                return json.load(read_file)
 
     def scrape_category(self):
-        count = 1
         for cat in self.categories:
             self.create_excel_file(cat, self.kindle_filename)
             break
+        workbook = op.load_workbook(self.kindle_filename, False)
         for category in self.categories:   # Create new thread for category
-            self.browser = webdriver.Chrome('../../chromedriver.exe') 
+            browser = webdriver.Chrome('../../chromedriver.exe') 
+            self.work_done.append(False)
             self.sub_level = 1
             self.sub_names = {'category': category, 'subcat-1' : 'null', 'subcat-2' : 'null', 'subcat-3' : 'null', 'subcat-4' : 'null'}
-            workbook = op.load_workbook(self.kindle_filename, False)
             try:
                 workbook[category]
             except:
@@ -84,13 +90,15 @@ class kindle:
                 workbook.close()
             try:
                 subcategories = self.kindle_categories[ category ]
-                t = threading.Thread(target=self.helper_category_books, args=(subcategories, self.kindle_filename, ))
+                t = threading.Thread(target=self.intermediate, args=(self.count, browser, subcategories, ))
                 t.start()
-                t.join()
+                time.sleep(random.randint(5, 10))
+                # t.join()
             except:
                 print ("Error: unable to start new thread")
-            count += 1
-            self.browser.quit()
+            self.count += 1
+            # print(self.country, '- count  == ', count)
+            if self.count >= 5: break
     
     def update_subnames(self, subcat):
         print('\n' ,self.sub_level, ' - ', self.sub_names)
@@ -99,12 +107,18 @@ class kindle:
         if self.sub_level == 3: self.sub_names['subcat-3'] = subcat
         if self.sub_level == 4: self.sub_names['subcat-4'] = subcat   
 
-    def helper_category_books(self, subcategories, filename):
+    def intermediate(self, count, browser, subcategories):
+        self.helper_category_books(browser, subcategories)
+        # print('\n\n Category Finished -------\n\n')
+        self.work_done[count] = True
+        browser.quit()
+
+    def helper_category_books(self, browser, subcategories):
         for subcat in subcategories:
             if not type(subcategories[subcat]) is dict:
                 self.update_subnames(subcat)
                 try:    # Create new thread for category
-                    t = threading.Thread(target=self.category_books, args=(filename, subcategories[subcat], ))
+                    t = threading.Thread(target=self.category_books, args=(browser, subcategories[subcat], ))
                     t.start()
                     t.join()
                 except:
@@ -112,19 +126,19 @@ class kindle:
             else:
                 self.update_subnames(subcat)
                 self.sub_level += 1
-                self.helper_category_books(subcategories[subcat], filename)
+                self.helper_category_books(browser, subcategories[subcat])
         self.update_subnames('null')
         self.sub_level -= 1
     
-    def category_books(self, filename, link):
+    def category_books(self, browser, link):
         books = []  # for book-data
-        self.browser.set_window_position(500,0)
+        browser.set_window_position(500,0)
         try:
-            self.browser.get(link)
+            browser.get(link)
         except:
             print('Failed to Load')
             return False
-        source = self.browser.page_source
+        source = browser.page_source
         soup = BeautifulSoup(source, features='lxml')
         book_sections = soup.find_all('div', attrs={'class':'a-section a-spacing-none aok-relative'})
         book_count = 1
@@ -134,8 +148,8 @@ class kindle:
             a_tags = book.find_all('a', attrs={'class':'a-link-normal'})
             book_details_link = book_prefix[self.country] + a_tags[0]['href']
             try:
-                self.browser.get(book_details_link)
-                source = self.browser.page_source
+                browser.get(book_details_link)
+                source = browser.page_source
                 soup = BeautifulSoup(source, features='lxml')
                 
                 title = soup.find('span', attrs={'id':'productTitle'}).get_text().strip('\n')
@@ -175,13 +189,13 @@ class kindle:
                 span = span.replace('\n\n','\n')
                 details['Best Sellers Rank'] = span
                 # print('K-', self.count, '. ', details, '\n')
-                print(self.count, end=" ")
-                self.count += 1
+                # print(self.count, end=" ")
                 books.append(details)
+                # self.count += 1
             except:
                 continue
         # Saving in Excel File  
-        self.write_to_excel(filename, books)
+        self.write_to_excel(self.kindle_filename, books)
 
     def create_excel_file(self, category_name, filename):
         # creating new excel file
@@ -233,6 +247,15 @@ if __name__ == '__main__':
         try:
             kind = kindle(country)
             kind.scrape_category()
-            time.sleep(5)
+            done = False
+            while not done:
+                time.sleep(5)
+                # print('Work Done - ', kind.work_done)
+                for val in kind.work_done:
+                    if not val:
+                        done = False
+                        break
+                    else: 
+                        done = True
         except:
             print(country, '-List Not Found')
