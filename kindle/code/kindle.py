@@ -76,29 +76,29 @@ class kindle:
             break
         workbook = op.load_workbook(self.kindle_filename, False)
         for category in self.categories:   # Create new thread for category
-            browser = webdriver.Chrome('../../chromedriver.exe') 
-            self.work_done.append(False)
-            self.sub_level = 1
-            self.sub_names = {'category': category, 'subcat-1' : 'null', 'subcat-2' : 'null', 'subcat-3' : 'null', 'subcat-4' : 'null'}
-            try:
-                workbook[category]
-            except:
-                workbook.create_sheet(category)
-                worksheet = workbook[category]
-                worksheet.append(self.headers())
-                workbook.save(self.kindle_filename)
-                workbook.close()
-            try:
-                subcategories = self.kindle_categories[ category ]
-                t = threading.Thread(target=self.intermediate, args=(self.count, browser, subcategories, ))
-                t.start()
-                time.sleep(random.randint(5, 10))
-                # t.join()
-            except:
-                print ("Error: unable to start new thread")
-            self.count += 1
-            # print(self.country, '- count  == ', count)
-            if self.count >= 5: break
+            if category in self.kindle_categories:
+                browser = webdriver.Chrome('../../chromedriver.exe') 
+                self.work_done.append(False)
+                self.sub_level = 1
+                self.sub_names = {'category': category, 'subcat-1' : 'null', 'subcat-2' : 'null', 'subcat-3' : 'null', 'subcat-4' : 'null'}
+                try:
+                    workbook[category]
+                except:
+                    workbook.create_sheet(category)
+                    worksheet = workbook[category]
+                    worksheet.append(self.headers())
+                    workbook.save(self.kindle_filename)
+                    workbook.close()
+                try:
+                    subcategories = self.kindle_categories[ category ]
+                    t = threading.Thread(target=self.intermediate, args=(self.count, browser, subcategories, ))
+                    t.start()
+                    time.sleep(random.randint(5, 10))
+                    # t.join()
+                except:
+                    print ("Error: unable to start new thread")
+                self.count += 1
+                # print(self.country, '- count  == ', count)
     
     def update_subnames(self, subcat):
         print('\n' ,self.sub_level, ' - ', self.sub_names)
@@ -240,7 +240,7 @@ def selected_countries():
                 country_list.append(datas[i])
     return country_list
 
-if __name__ == '__main__':
+def main():
     countries = selected_countries()
     print(countries)
     for country in countries:
@@ -255,7 +255,8 @@ if __name__ == '__main__':
                     if not val:
                         done = False
                         break
-                    else: 
-                        done = True
-        except:
-            print(country, '-List Not Found')
+                    else:   done = True
+        except: print(country, '-List Not Found')
+
+if __name__ == '__main__':
+   main()

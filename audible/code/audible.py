@@ -35,7 +35,7 @@ book_prefix = {
 
 
 class audible:
-    count = 1
+    count = 0
     country = ''
     sub_level = 0
     sub_names = {}
@@ -70,31 +70,32 @@ class audible:
             self.create_excel_file(cat, self.audible_filename)
             break
         for category in self.categories:   # Create new thread for category
-            browser = webdriver.Chrome('../../chromedriver.exe') 
-            self.work_done.append(False)
-            self.sub_level = 1
-            self.sub_names = {'category': category, 'subcat-1' : 'null', 'subcat-2' : 'null', 'subcat-3' : 'null', 'subcat-4' : 'null'}
-            workbook = op.load_workbook(self.audible_filename, False)
-            try:
-                workbook[category]
-            except:
-                workbook.create_sheet(category)
-                worksheet = workbook[category]
-                worksheet.append(self.headers())
-                workbook.save(self.audible_filename)
-                workbook.close()
-            try:
-                subcategories = self.audible_categories[ category ]
-                t = threading.Thread(target=self.intermediate, args=(self.count, browser, subcategories, ))
-                t.start()
-                # t.join()
-            except:
-                print ("Error: unable to start new thread")
-            self.count += 1
+            if category in self.audible_categories:
+                browser = webdriver.Chrome('../../chromedriver.exe') 
+                self.work_done.append(False)
+                self.sub_level = 1
+                self.sub_names = {'category': category, 'subcat-1' : 'null', 'subcat-2' : 'null', 'subcat-3' : 'null', 'subcat-4' : 'null'}
+                workbook = op.load_workbook(self.audible_filename, False)
+                try:
+                    workbook[category]
+                except:
+                    workbook.create_sheet(category)
+                    worksheet = workbook[category]
+                    worksheet.append(self.headers())
+                    workbook.save(self.audible_filename)
+                    workbook.close()
+                try:
+                    subcategories = self.audible_categories[ category ]
+                    t = threading.Thread(target=self.intermediate, args=(self.count, browser, subcategories, ))
+                    t.start()
+                    # t.join()
+                except:
+                    print ("Error: unable to start new thread")
+                self.count += 1
     
     def intermediate(self, count, browser, subcategories):
         self.helper_category_books(browser, subcategories)
-        # print('\n\n Category Finished -------\n\n')
+        print('\n\n Category Finished -------\n\n')
         self.work_done[count] = True
         browser.quit()
 
@@ -234,7 +235,7 @@ def selected_countries():
                 country_list.append(datas[i])
     return country_list
 
-if __name__ == '__main__':
+def main():
     countries = selected_countries()
     print(countries)
     for country in countries:
@@ -244,12 +245,13 @@ if __name__ == '__main__':
             done = False
             while not done:
                 time.sleep(5)
-                # print('Work Done - ', kind.work_done)
+                # print('Work Done - ', audi.work_done)
                 for val in audi.work_done:
                     if not val:
                         done = False
                         break
-                    else: 
-                        done = True
-        except:
-            print(country, '-List Not Found')
+                    else:   done = True
+        except: print(country, '-List Not Found')
+        
+if __name__ == '__main__':
+    main()

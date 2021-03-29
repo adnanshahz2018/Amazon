@@ -3,12 +3,11 @@
 import schedule, time, datetime
 
 # local imports
-from audible import audible
+from audible import main
 
 
 def scheduler():
-    audi = audible()
-    audi.scrape_category()
+    main()
     tm = str(datetime.datetime.now()).split(':')
     tim = 'Last Updated = ' + tm[0] + ':' + tm[1]
     print( '\n---------------------------------------------------\n', tim, '\n---------------------------------------------------\n')
