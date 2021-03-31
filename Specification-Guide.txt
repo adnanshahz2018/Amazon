@@ -1,0 +1,27 @@
+Each Audible and Kindle have 3 folders:
+
+1. category_list: 
+	a. JSON files containing list of category-subcategories.
+	b. update_list.py that will collect and save the category lists in JSON files
+	c. countries.xlsx => used for Country_Selection, has the list of all Amazon-countries
+2. code:
+	a. audible.py/kindle.py for collecting and saving book-data in excel file
+	b. schedule.py for scheduling the program (daily)
+	c. settings.xlsx => Spreadsheet containing all the settings
+3.  data:
+	a. this folder will contain the saved spreadsheets containing book-data
+
+Specifications:
+
+1. chromedriver.exe used in this program should be of the same version as he Chrome Browser installed on your System.  
+
+2. countries.xlsx => 
+	a. filename = countries
+	b. sheetname = countries
+	c. column name = countries
+3. settings.xlsx =>
+	a. filename = settings
+	b. sheetname = settings
+	c. column headers = should be the same as set in this file
+
+. . . 
