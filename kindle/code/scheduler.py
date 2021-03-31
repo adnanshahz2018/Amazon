@@ -12,7 +12,7 @@ def scheduler():
     tim = 'Last Updated = ' + tm[0] + ':' + tm[1]
     print( '\n---------------------------------------------------\n', tim, '\n---------------------------------------------------\n')
 
-schedule.every(1).hour.do(scheduler)
+schedule.every().day.at('08:30').do(scheduler)
 while True:
     schedule.run_pending()
     time.sleep(1)
