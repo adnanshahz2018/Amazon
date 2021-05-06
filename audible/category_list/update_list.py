@@ -29,7 +29,6 @@ audible_best_sellers    = {
 }
 
 
-
 class audible:
     count = 0
     browser = None
@@ -54,7 +53,6 @@ class audible:
                 json.dump(audible_categories_us, jasonfile, indent=4)
             
             break
-
         self.browser.quit()
         
     def check_subcategory(self, cat, link):
